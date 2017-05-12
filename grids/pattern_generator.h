@@ -50,12 +50,14 @@ struct PatternGeneratorSettings {
   union Options {
     DrumsSettings drums;
     uint8_t euclidean_length[kNumParts];
+    uint8_t clockDiv_offset[kNumParts];
   } options;
   uint8_t density[kNumParts];
 };
 
 enum OutputMode {
   OUTPUT_MODE_EUCLIDEAN,
+  OUTPUT_MODE_CLOCK_DIV,
   OUTPUT_MODE_DRUMS
 };
 
@@ -127,6 +129,7 @@ class PatternGenerator {
     step_ = 0;
     pulse_ = 0;
     memset(euclidean_step_, 0, sizeof(euclidean_step_));
+    memset(clk_div_counter_, 0, sizeof(clk_div_counter_));
   }
   
   static inline void Retrigger() {
@@ -231,6 +234,7 @@ class PatternGenerator {
   static void LoadSettings();
   static void Evaluate();
   static void EvaluateEuclidean();
+  static void EvaluateClockDiv();
   static void EvaluateDrums();
   
   static uint8_t ReadDrumMap(
@@ -244,6 +248,7 @@ class PatternGenerator {
   static uint8_t pulse_;
   static uint8_t step_;
   static uint8_t euclidean_step_[kNumParts];
+  static uint8_t clk_div_counter_[kNumParts];
   static bool first_beat_;
   static bool beat_;
   

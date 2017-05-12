@@ -95,6 +95,8 @@ inline void UpdateLeds() {
       case PARAMETER_OUTPUT_MODE:
         if (pattern_generator.output_mode() == OUTPUT_MODE_DRUMS) {
           pattern |= LED_ALL;
+        } else if (pattern_generator.output_mode() == OUTPUT_MODE_CLOCK_DIV) {
+          pattern |= LED_2ND;
         }
         break;
       
@@ -323,7 +325,12 @@ void ScanPots() {
 
           case ADC_CHANNEL_X_CV:
             parameter = PARAMETER_OUTPUT_MODE;
-            pattern_generator.set_output_mode(!(value & 0x80) ? 1 : 0);
+            if (value < 85)
+              pattern_generator.set_output_mode(1);
+            else if (value < 170)
+              pattern_generator.set_output_mode(2);
+            else
+              pattern_generator.set_output_mode(0);
             break;
 
           case ADC_CHANNEL_Y_CV:

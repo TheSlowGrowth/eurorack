@@ -49,6 +49,9 @@ bool PatternGenerator::beat_;
 uint8_t PatternGenerator::euclidean_step_[kNumParts];
 
 /* static */
+uint8_t PatternGenerator::clk_div_counter_[kNumParts];
+
+/* static */
 uint8_t PatternGenerator::state_;
 
 /* static */
@@ -171,6 +174,36 @@ void PatternGenerator::EvaluateEuclidean() {
   }
 }
 
+void PatternGenerator::EvaluateClockDiv() {
+  uint8_t instrument_mask = 1;
+  uint8_t accent_bits = 0;
+  for (uint8_t i = 0; i < kNumParts; ++i) {
+    uint8_t offset_dial = settings_.options.clockDiv_offset[i];
+    uint8_t ratio = settings_.density[i] >> 3;
+
+    clk_div_counter_[i]++;
+    if (clk_div_counter_[i] >= ratio)
+      clk_div_counter_[i] = 0;
+
+    uint8_t offset = U8U8MulShift8(offset_dial, ratio);
+    if (clk_div_counter_[i] == offset)
+    //if (clk_div_counter_[i] == 0)
+    {
+      state_ |= instrument_mask;
+    }
+
+    instrument_mask <<= 1;
+  }
+
+  if (output_clock()) {
+    //TODO: Do soemthing usefull here
+    //state_ |= accent_bits ? OUTPUT_BIT_COMMON : 0;
+    //state_ |= step_ == 0 ? OUTPUT_BIT_RESET : 0;
+  } else {
+    state_ |= accent_bits << 3;
+  }
+}
+
 /* static */
 void PatternGenerator::LoadSettings() {
   options_.unpack(eeprom_read_byte(NULL));
@@ -205,17 +238,25 @@ void PatternGenerator::Evaluate() {
   if (pulse_ != 0) {
     return;
   }
-  
-  if (options_.output_mode == OUTPUT_MODE_EUCLIDEAN) {
-    EvaluateEuclidean();
-  } else {
-    EvaluateDrums();
+
+  switch (options_.output_mode)
+  {
+    case OUTPUT_MODE_EUCLIDEAN:
+      EvaluateEuclidean();
+      break;
+    case OUTPUT_MODE_CLOCK_DIV:
+      EvaluateClockDiv();
+      break;
+    case OUTPUT_MODE_DRUMS:
+      EvaluateDrums();
+      break;
   }
 }
 
 /* static */
 int8_t PatternGenerator::swing_amount() {
-  if (options_.swing && output_mode() == OUTPUT_MODE_DRUMS) {
+  if (options_.swing && ((output_mode() == OUTPUT_MODE_DRUMS)
+                       ||(output_mode() == OUTPUT_MODE_CLOCK_DIV))) {
     int8_t value = U8U8MulShift8(settings_.options.drums.randomness, 42 + 1);
     return (!(step_ & 2)) ? value : -value;
   } else {

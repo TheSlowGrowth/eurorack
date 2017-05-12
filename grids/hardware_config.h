@@ -40,7 +40,8 @@ enum LedBits {
   LED_BD = 8,
   LED_SD = 4,
   LED_HH = 2,
-  LED_ALL = LED_CLOCK | LED_BD | LED_SD | LED_HH
+  LED_ALL = LED_CLOCK | LED_BD | LED_SD | LED_HH,
+  LED_2ND = LED_CLOCK | LED_BD | LED_HH
 };
 
 enum InputBits {
