@@ -180,14 +180,10 @@ void PatternGenerator::EvaluateClockDiv() {
 
   for (uint8_t i = 0; i < kNumParts; ++i) {
     uint8_t offset_dial = settings_.options.clockDiv_offset[i];
-    uint8_t ratio = (255 - settings_.density[i]) >> 3;
+    uint8_t ratio = 33 - ((settings_.density[i]) >> 3);
 
     uint8_t offset = U8U8MulShift8(offset_dial, ratio);
-    if (ratio == 0)
-    {
-      state_ |= instrument_mask;
-    }
-    else if ((clk_div_counter_%ratio) == offset)
+    if ((clk_div_counter_%ratio) == offset)
     {
       state_ |= instrument_mask;
     }
