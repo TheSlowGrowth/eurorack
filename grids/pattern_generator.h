@@ -128,7 +128,10 @@ class PatternGenerator {
   }
   
   static inline void Retrigger() {
-    Evaluate();
+    // the retriggering breaks the clock division. Shut it off for the
+    // clock divider mode. It's only active on the first 5 power cycles anyway.
+    if (options_.output_mode != OUTPUT_MODE_CLOCK_DIV)
+      Evaluate();
   }
   
   static inline void TickClock(uint8_t num_pulses) {
