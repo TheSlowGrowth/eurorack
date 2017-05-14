@@ -49,7 +49,7 @@ bool PatternGenerator::beat_;
 uint8_t PatternGenerator::euclidean_step_[kNumParts];
 
 /* static */
-uint8_t PatternGenerator::clk_div_counter_[kNumParts];
+uint32_t PatternGenerator::clk_div_counter_;
 
 /* static */
 uint8_t PatternGenerator::state_;
@@ -176,18 +176,18 @@ void PatternGenerator::EvaluateEuclidean() {
 
 void PatternGenerator::EvaluateClockDiv() {
   uint8_t instrument_mask = 1;
-  uint8_t accent_bits = 0;
+  uint8_t accent_bits = 0; //TODO: Do something usefull with the accents
+
   for (uint8_t i = 0; i < kNumParts; ++i) {
     uint8_t offset_dial = settings_.options.clockDiv_offset[i];
-    uint8_t ratio = settings_.density[i] >> 3;
-
-    clk_div_counter_[i]++;
-    if (clk_div_counter_[i] >= ratio)
-      clk_div_counter_[i] = 0;
+    uint8_t ratio = (255 - settings_.density[i]) >> 3;
 
     uint8_t offset = U8U8MulShift8(offset_dial, ratio);
-    if (clk_div_counter_[i] == offset)
-    //if (clk_div_counter_[i] == 0)
+    if (ratio == 0)
+    {
+      state_ |= instrument_mask;
+    }
+    else if ((clk_div_counter_%ratio) == offset)
     {
       state_ |= instrument_mask;
     }
@@ -195,10 +195,11 @@ void PatternGenerator::EvaluateClockDiv() {
     instrument_mask <<= 1;
   }
 
+  clk_div_counter_++;
+
   if (output_clock()) {
-    //TODO: Do soemthing usefull here
-    //state_ |= accent_bits ? OUTPUT_BIT_COMMON : 0;
-    //state_ |= step_ == 0 ? OUTPUT_BIT_RESET : 0;
+    state_ |= accent_bits ? OUTPUT_BIT_COMMON : 0;
+    state_ |= step_ == 0 ? OUTPUT_BIT_RESET : 0;
   } else {
     state_ |= accent_bits << 3;
   }

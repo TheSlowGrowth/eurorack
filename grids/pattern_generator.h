@@ -85,17 +85,15 @@ struct Options {
   uint8_t pack() const {
     uint8_t byte = clock_resolution;
     if (!swing) {
-      byte |= 0x08;
+      byte |= 0x04;
     }
     if (tap_tempo) {
-      byte |= 0x10;
+      byte |= 0x08;
     }
     if (output_clock) {
-      byte |= 0x20;
+      byte |= 0x10;
     }
-    if (output_mode == OUTPUT_MODE_DRUMS) {
-      byte |= 0x40;
-    }
+    byte |= (output_mode & 0x03) << 1;
     if (!gate_mode) {
       byte |= 0x80;
     }
@@ -103,15 +101,12 @@ struct Options {
   }
   
   void unpack(uint8_t byte) {
-    tap_tempo = byte & 0x10;
-    output_clock = byte & 0x20;
-    output_mode = byte & 0x40 ? OUTPUT_MODE_DRUMS : OUTPUT_MODE_EUCLIDEAN;
+    tap_tempo = byte & 0x08;
+    output_clock = byte & 0x10;
+    output_mode = static_cast<OutputMode>((byte & 0x06) >> 1);
     gate_mode = !(byte & 0x80);
-    swing = !(byte & 0x08);
-    clock_resolution = static_cast<ClockResolution>(byte & 0x7);
-    if (clock_resolution >= CLOCK_RESOLUTION_24_PPQN) {
-      clock_resolution = CLOCK_RESOLUTION_24_PPQN;
-    }
+    swing = !(byte & 0x04);
+    clock_resolution = static_cast<ClockResolution>(byte & 0x03);
   }
 };
 
@@ -129,7 +124,7 @@ class PatternGenerator {
     step_ = 0;
     pulse_ = 0;
     memset(euclidean_step_, 0, sizeof(euclidean_step_));
-    memset(clk_div_counter_, 0, sizeof(clk_div_counter_));
+    clk_div_counter_ = 0;
   }
   
   static inline void Retrigger() {
@@ -248,7 +243,8 @@ class PatternGenerator {
   static uint8_t pulse_;
   static uint8_t step_;
   static uint8_t euclidean_step_[kNumParts];
-  static uint8_t clk_div_counter_[kNumParts];
+  // counts 32th not increments. takes forever to overflow
+  static uint32_t clk_div_counter_;
   static bool first_beat_;
   static bool beat_;
   
