@@ -186,12 +186,12 @@ void PatternGenerator::EvaluateClockDiv() {
     if ((clk_div_counter_%ratio) == offset)
     {
       state_ |= instrument_mask;
-      accent_bits |= 0x04;
+      accent_bits |= 0x01;
       accent_bits ^= 0x02;
       if (i == 2)
       {
         Random::Update();
-        accent_bits |= Random::state() & 0x01;
+        accent_bits |= Random::state() & 0x04;
       }
     }
 
