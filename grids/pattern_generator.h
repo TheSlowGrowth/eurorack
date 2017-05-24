@@ -246,7 +246,7 @@ class PatternGenerator {
   static uint8_t pulse_;
   static uint8_t step_;
   static uint8_t euclidean_step_[kNumParts];
-  // counts 32th not increments. takes forever to overflow
+  // counts 32th note increments. takes forever to overflow
   static uint32_t clk_div_counter_;
   static bool first_beat_;
   static bool beat_;

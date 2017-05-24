@@ -176,7 +176,7 @@ void PatternGenerator::EvaluateEuclidean() {
 
 void PatternGenerator::EvaluateClockDiv() {
   uint8_t instrument_mask = 1;
-  uint8_t accent_bits = 0; //TODO: Do something usefull with the accents
+  uint8_t accent_bits = 0;
 
   for (uint8_t i = 0; i < kNumParts; ++i) {
     uint8_t offset_dial = settings_.options.clockDiv_offset[i];
@@ -186,6 +186,13 @@ void PatternGenerator::EvaluateClockDiv() {
     if ((clk_div_counter_%ratio) == offset)
     {
       state_ |= instrument_mask;
+      accent_bits |= 0x04;
+      accent_bits ^= 0x02;
+      if (i == 2)
+      {
+        Random::Update();
+        accent_bits |= Random::state() & 0x01;
+      }
     }
 
     instrument_mask <<= 1;
@@ -194,7 +201,7 @@ void PatternGenerator::EvaluateClockDiv() {
   clk_div_counter_++;
 
   if (output_clock()) {
-    state_ |= accent_bits ? OUTPUT_BIT_COMMON : 0;
+    state_ |= (accent_bits & 0x04) ? OUTPUT_BIT_COMMON : 0;
     state_ |= step_ == 0 ? OUTPUT_BIT_RESET : 0;
   } else {
     state_ |= accent_bits << 3;
